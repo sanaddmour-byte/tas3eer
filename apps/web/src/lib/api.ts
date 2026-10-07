@@ -6,7 +6,16 @@ export const setCsrf = (t: string) => { csrf = t; };
 let onUnauth: () => void = () => {};
 export const setOnUnauth = (f: () => void) => { onUnauth = f; };
 
-export async function api<T = any>(method: string, url: string, body?: unknown, opts: { raw?: boolean } = {}): Promise<T> {
+/** After an offline start the cached identity has no CSRF token; fetch a fresh one (this also revalidates the session). */
+async function refreshCsrf(): Promise<void> {
+  const r = await fetch('/api/auth/me', { credentials: 'same-origin' }).catch(() => null);
+  if (!r) throw new ApiError(0, 'network', 'Network unavailable');
+  if (r.status === 401) { onUnauth(); throw new ApiError(401, 'unauthenticated', 'Authentication required'); }
+  if (r.ok) csrf = (await r.json()).csrfToken ?? '';
+}
+
+export async function api<T = any>(method: string, url: string, body?: unknown, opts: { raw?: boolean; retried?: boolean } = {}): Promise<T> {
+  if (method !== 'GET' && !csrf && !url.startsWith('/auth/') && !url.startsWith('/setup')) await refreshCsrf();
   let res: Response;
   try {
     res = await fetch(`/api${url}`, {
@@ -23,6 +32,7 @@ export async function api<T = any>(method: string, url: string, body?: unknown, 
   if (!res.ok) {
     if (res.status === 401 && !url.startsWith('/auth/login')) onUnauth();
     const e = data.error ?? {};
+    if (res.status === 403 && e.code === 'csrf' && !opts.retried) { await refreshCsrf(); return api<T>(method, url, body, { ...opts, retried: true }); }
     throw new ApiError(res.status, e.code ?? 'error', e.message ?? res.statusText, e);
   }
   return data as T;

@@ -49,6 +49,7 @@ export function QuotationBuilder() {
   const [changed, setChanged] = useState<{ total: string; fingerprint: string } | null>(null);
   const [newClient, setNewClient] = useState(false);
   const [notice, setNotice] = useState('');
+  const [incl, setIncl] = useState({ target: '', msg: '', busy: false });
   const dirty = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const [debouncing, setDebouncing] = useState(false);
@@ -306,6 +307,17 @@ export function QuotationBuilder() {
                         {can('quote.override_price') && <div className="row">
                           <NumField label={t('Override customer rate')} unit="JOD/m³" value={l.priceOverride?.perM3 ?? ''} disabled={readonly} onChange={(v) => update((d) => ({ ...d, lines: d.lines.map((x) => (x.id === l.id ? { ...x, priceOverride: v ? { perM3: v, reason: x.priceOverride?.reason ?? '' } : null } : x)) }))} />
                           <TextField label={t('Reason for price override')} value={l.priceOverride?.reason ?? ''} disabled={readonly || !l.priceOverride} onChange={(e) => update((d) => ({ ...d, lines: d.lines.map((x) => (x.id === l.id && x.priceOverride ? { ...x, priceOverride: { ...x.priceOverride, reason: e.target.value } } : x)) }))} error={l.priceOverride && !l.priceOverride.reason.trim() && attempted ? t('Enter a reason for the override.') : null} /></div>}
+                        {can('quote.override_price') && !readonly && (
+                          <div className="row" style={{ marginTop: 8 }}>
+                            <NumField label={t('Tax-inclusive customer total')} unit="JOD" value={incl.target} onChange={(v) => setIncl({ ...incl, target: v, msg: '' })} hint={doc.lines.length === 1 ? t('Solves the concrete rate so the total including tax matches. Needs a verified tax policy and a single concrete line.') : t('Tax-inclusive entry needs exactly one concrete line.')} />
+                            <button className="fixed" disabled={doc.lines.length !== 1 || !incl.target || incl.busy || offline} onClick={async () => {
+                              setIncl({ ...incl, busy: true, msg: '' });
+                              try { const r = await post('/quotations/solve-inclusive', { doc: persistable(doc), target: incl.target }); update((d) => ({ ...d, lines: d.lines.map((x) => (x.id === l.id ? { ...x, priceOverride: { perM3: r.ratePerM3, reason: x.priceOverride?.reason ?? '' } } : x)) })); setIncl({ target: incl.target, busy: false, msg: t('Rate set to {r} JOD/m³ (total {a} JOD). Enter a reason for the override.', { r: r.ratePerM3, a: r.achievedTotal }) }); }
+                              catch (e) { setIncl({ ...incl, busy: false, msg: (e as Error).message }); }
+                            }}>{t('Set rate from total')}</button>
+                            {incl.msg && <span className="hint" role="status">{incl.msg}</span>}
+                          </div>
+                        )}
                         {can('quote.override_cost') && <div className="row" style={{ marginTop: 8 }}>
                           <NumField label={t('Override full cost')} unit="JOD/m³" value={l.costOverride?.perM3 ?? ''} disabled={readonly} onChange={(v) => update((d) => ({ ...d, lines: d.lines.map((x) => (x.id === l.id ? { ...x, costOverride: v ? { perM3: v, reason: x.costOverride?.reason ?? '' } : null } : x)) }))} />
                           <TextField label={t('Reason for cost override')} value={l.costOverride?.reason ?? ''} disabled={readonly || !l.costOverride} onChange={(e) => update((d) => ({ ...d, lines: d.lines.map((x) => (x.id === l.id && x.costOverride ? { ...x, costOverride: { ...x.costOverride, reason: e.target.value } } : x)) }))} /></div>}

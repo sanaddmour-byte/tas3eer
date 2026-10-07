@@ -3,7 +3,7 @@ import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import crypto from 'node:crypto';
 import { z } from 'zod';
 import { decisionInput, outcomeInput, quoteDocument, saveDraftInput, syncOperationInput, uuid, canTransition, type QuoteDocument, type QuoteStatus } from '@rm/shared';
-import { previewCustomerTotals } from '@rm/engine';
+import { previewCustomerTotals, solveRateForInclusiveTotal, PricingError } from '@rm/engine';
 import { db, schema } from '../db/client.js';
 import { audit } from '../services/audit.js';
 import { conflict, ctxOf, forbidden, has, HttpError, need, parse, plantAllowed, unprocessable, wrap, type Ctx } from '../http.js';
@@ -84,6 +84,16 @@ quoteRouter.get('/quotations', wrap(async (req, res) => {
   if (q.to) out = out.filter((r) => r.createdAt.toISOString().slice(0, 10) <= q.to!);
   if (q.q) { const n = q.q.toLowerCase(); out = out.filter((r) => [r.number, r.client, r.project].some((v) => v?.toLowerCase().includes(n))); }
   res.json(out);
+}));
+
+// ---------- tax-inclusive price entry: solve the single concrete rate that yields a target inclusive total ----------
+quoteRouter.post('/quotations/solve-inclusive', wrap(async (req, res) => {
+  const ctx = need(req, 'quote.override_price');
+  const b = parse(z.object({ doc: quoteDocument, target: z.string().regex(/^\d+(\.\d+)?$/) }), req.body);
+  try {
+    const input = await Q.buildInput(db, ctx, { ...b.doc, pinnedReference: false });
+    res.json(solveRateForInclusiveTotal(input, b.target));
+  } catch (e) { if (e instanceof PricingError) throw unprocessable(e.issues[0]!.message, { code: e.issues[0]!.code }); throw e; }
 }));
 
 // ---------- create / save ----------

@@ -120,7 +120,7 @@ function TotalsPanelMini({ result }: { result: any }) {
   return (<div className="stack">
     <div className="table-wrap"><table className="t"><thead><tr><th>{t('Mix')}</th><th className="n">m³</th><th className="n">{t('Full cost')} JOD/m³</th><th className="n">{t('Price')} JOD/m³</th><th className="n">{t('Margin')}</th><th>{t('Mode')}</th></tr></thead><tbody>
       {result.lines.map((l: any) => <tr key={l.id}><td>{l.mixCode}</td><td className="n">{qty(l.quantityM3)}</td><td className="n">{money(l.internal?.costUsedPerM3, 4)}{l.internal?.costOverridden ? ' *' : ''}</td><td className="n">{money(l.customerRatePerM3)}{l.internal?.priceOverridden ? ' *' : ''}</td><td className="n">{l.internal?.marginPct ? `${l.internal.marginPct}%` : '—'}</td><td>{l.internal?.pricingMode === 'markup' ? t('Markup') : t('Gross margin')} {l.internal?.pricingPct}%</td></tr>)}</tbody></table></div>
-    <InternalAnalysis result={result} /></div>);
+    <InternalAnalysis result={result} defaultOpen /></div>);
 }
 function VersionList({ result }: { result: any }) {
   const t = useT(); const v = result?.versions; if (!v) return null;

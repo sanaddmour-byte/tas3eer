@@ -11,19 +11,19 @@ test('Arabic user completes the mobile (360px) quotation flow with RTL layout', 
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expectNoHScroll(page, 'overview (ar, 360)');
   await page.screenshot({ path: 'e2e/screenshots/mobile-ar-overview.png' });
-  await page.getByRole('link', { name: 'عروض الأسعار' }).first().click();
+  await page.getByRole('link', { name: 'عروض الأسعار' }).last().click(); // bottom navigation
   await expectNoHScroll(page, 'quotation list (ar, 360)');
   await page.screenshot({ path: 'e2e/screenshots/mobile-ar-list.png' });
   await page.getByRole('link', { name: 'عرض سعر جديد' }).first().click();
   // step 1 — client & project
-  await page.getByLabel('العميل', { exact: true }).click(); await page.getByLabel('العميل', { exact: true }).fill('Al-Noor'); await page.getByRole('option', { name: /Al-Noor/ }).click();
-  await expect(page.getByLabel('المشروع', { exact: true })).toHaveValue('Tower A');
+  await page.getByRole('combobox', { name: 'العميل', exact: true }).click(); await page.getByRole('combobox', { name: 'العميل', exact: true }).fill('Al-Noor'); await page.getByRole('option', { name: /Al-Noor/ }).click();
+  await expect(page.getByRole('combobox', { name: 'المشروع', exact: true })).toHaveValue('Tower A');
   await expectNoHScroll(page, 'builder step 1'); await page.screenshot({ path: 'e2e/screenshots/mobile-ar-step1.png' });
   await page.getByRole('button', { name: /^التالي/ }).click();
   // step 2 — concrete
   await page.getByRole('button', { name: 'إضافة أول بند خلطة' }).click();
-  await page.getByLabel('الخلطة', { exact: true }).click(); await page.getByLabel('الخلطة', { exact: true }).fill('C30'); await page.getByRole('option', { name: /C30/ }).first().click();
-  await page.getByLabel('الكمية', { exact: true }).first().fill('40');
+  await page.getByRole('combobox', { name: 'الخلطة', exact: true }).click(); await page.getByRole('combobox', { name: 'الخلطة', exact: true }).fill('C30'); await page.getByRole('option', { name: /C30/ }).first().click();
+  await page.getByLabel(/^الكمية/).first().fill('40');
   await expect(page.getByText('تم الحفظ', { exact: true }).first()).toBeVisible();
   await expectNoHScroll(page, 'builder step 2'); await page.screenshot({ path: 'e2e/screenshots/mobile-ar-step2.png' });
   // compact bottom summary expands

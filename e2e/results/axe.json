@@ -1,0 +1,67 @@
+[
+ {
+  "lang": "en",
+  "path": "/",
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "path": "/quotations",
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "path": "/mixes",
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "path": "/price-book",
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "path": "/plant-costs",
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "path": "/approvals",
+  "violations": []
+ },
+ {
+  "lang": "ar",
+  "path": "/",
+  "violations": []
+ },
+ {
+  "lang": "ar",
+  "path": "/quotations",
+  "violations": []
+ },
+ {
+  "lang": "ar",
+  "path": "/mixes",
+  "violations": []
+ },
+ {
+  "lang": "ar",
+  "path": "/price-book",
+  "violations": []
+ },
+ {
+  "lang": "ar",
+  "path": "/plant-costs",
+  "violations": []
+ },
+ {
+  "lang": "ar",
+  "path": "/approvals",
+  "violations": []
+ },
+ {
+  "lang": "en",
+  "path": "/quotations/new",
+  "violations": []
+ }
+]

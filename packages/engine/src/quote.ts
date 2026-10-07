@@ -248,7 +248,8 @@ export function solveRateForInclusiveTotal(
   if (amount.lte(0)) throw new PricingError([err('inversion_nonpositive', 'The tax-inclusive target is too low for the services already included.')]);
   const rate = rnd(amount.div(qty), rounding.priceDp);
   const check = priceQuotation({ ...input, lines: [{ ...input.lines[0]!, priceOverride: { perM3: rate.toString(), reason: 'inclusive entry' } }] });
-  const total = check.customer.total ?? '0';
+  if (check.customer.total === null) throw new PricingError([check.issues.find((i) => i.severity === 'error' && i.code !== 'tax_unverified') ?? err('not_calculable', 'The quotation cannot be calculated yet.')]);
+  const total = check.customer.total;
   return { ratePerM3: S(rate, rounding.priceDp), achievedTotal: total, delta: S(D(total).minus(D(targetInclusive)), rounding.moneyDp) };
 }
 

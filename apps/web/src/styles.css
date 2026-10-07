@@ -205,3 +205,4 @@ td.n, th.n, .preview td.n, .preview th.n { text-align: end; }
 @media (max-width: 767px) { .lang-label { display: none; } }
 div.ltr, p.ltr { display: block; }
 .stack > .card, .stack > .card + .card { margin-top: 0; }
+.table-wrap { position: relative; }

@@ -61,6 +61,16 @@ describe('authentication', () => {
     await db.execute(sql`update invitations set expires_at = now() - interval '1 minute' where id = ${inv2.body.id}`);
     expect((await request(app).post('/api/auth/invitations/accept').send({ token: t2, name: 'Late', password: 'Another!Passw0rd1' })).status).toBe(404);
   });
+  it('locks an account for 15 minutes after 10 failures, still answering with the same generic error', async () => {
+    const email = A.email('viewer').replace('viewer-', 'lock-');
+    const { createUser } = await import('../src/seed/fixture.js');
+    await createUser(A.t.id, email, 'Lock Test', 'viewer', PW, { plantIds: [A.cat.plants.MRK!] });
+    for (let i = 0; i < 10; i++) expect((await request(app).post('/api/auth/login').send({ email, password: 'wrong-password-123' })).status).toBe(401);
+    const locked = await request(app).post('/api/auth/login').send({ email, password: PW });
+    expect(locked.status).toBe(401); expect(locked.body.error.message).toBe('Invalid email or password.');
+    await db.execute(sql`update users set locked_until = null, failed_logins = 0 where lower(email) = ${email.toLowerCase()}`);
+    expect((await request(app).post('/api/auth/login').send({ email, password: PW })).status).toBe(200);
+  });
   it('passwords are stored with argon2id', async () => {
     const [u] = await db.select().from(schema.users).where(eq(schema.users.email, A.email('sales')));
     expect(u!.passwordHash.startsWith('$argon2id$')).toBe(true);

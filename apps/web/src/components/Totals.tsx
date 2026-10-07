@@ -32,10 +32,10 @@ export function TotalsPanel({ result, estimate, taxLabel }: { result: any; estim
 function Row({ k, v, grand }: { k: string; v: string; grand?: boolean }) { return <div className={`trow ${grand ? 'grand' : ''}`}><span>{k}</span><span className="num">{v}</span></div>; }
 export const approvalLabel = (c: string) => ({ price_override: 'Price override', cost_override: 'Cost override', below_margin_threshold: 'Margin below approved threshold', below_cost: 'Priced below full configured cost', service_rate_override: 'Service rate override' } as Record<string, string>)[c] ?? c;
 
-export function InternalAnalysis({ result }: { result: any }) {
+export function InternalAnalysis({ result, defaultOpen }: { result: any; defaultOpen?: boolean }) {
   const { can } = useAuth();
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!defaultOpen);
   if (!can('cost.view') || !result?.internal) return null;
   const i = result.internal;
   return (

@@ -1,20 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 import fs from 'node:fs';
-import { dialog, roleContext, state, iso } from './helpers';
+import { dialog, roleContext, state, iso, pickClient } from './helpers';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 test.describe.configure({ mode: 'serial' });
 
-export async function pickClient(page: Page) {
-  await page.getByLabel('Client', { exact: true }).click();
-  await page.getByLabel('Client', { exact: true }).fill('Al-Noor');
-  await page.getByRole('option', { name: /Al-Noor Contracting/ }).click();
-}
 async function addLine(page: Page, qty: string | null) {
   await page.getByRole('button', { name: 'Add first mix line' }).click();
-  await page.getByLabel('Mix', { exact: true }).click(); await page.getByLabel('Mix', { exact: true }).fill('C30');
+  await page.getByRole('combobox', { name: 'Mix', exact: true }).click(); await page.getByRole('combobox', { name: 'Mix', exact: true }).fill('C30');
   await page.getByRole('option', { name: /C30/ }).first().click();
-  if (qty !== null) await page.getByLabel('Quantity', { exact: true }).first().fill(qty);
+  if (qty !== null) await page.getByLabel(/^Quantity/).first().fill(qty);
 }
 async function commercial(page: Page) {
   await page.getByLabel('Terms template').selectOption({ index: 1 });
@@ -31,7 +26,7 @@ test('sales: corrects a missing quantity from the error summary; simple quotatio
   const t0 = Date.now();
   await page.getByRole('link', { name: 'New quotation' }).first().click();
   await pickClient(page);
-  await expect(page.getByLabel('Project', { exact: true })).toHaveValue('Tower A');
+  await expect(page.getByRole('combobox', { name: 'Project', exact: true })).toHaveValue('Tower A');
   await expect(page.getByLabel('Supplying plant')).toHaveValue(state.plantId);
   await addLine(page, null); // quantity deliberately left empty
   await commercial(page);
@@ -41,8 +36,8 @@ test('sales: corrects a missing quantity from the error summary; simple quotatio
   await expect(summary).toBeVisible();
   await expect(summary.getByRole('link', { name: /Enter a valid quantity in m³ for C30/ })).toBeVisible();
   await summary.getByRole('link', { name: /Enter a valid quantity/ }).click();
-  await expect(page.getByLabel('Quantity', { exact: true }).first()).toBeFocused(); // focus moved to the affected field
-  await page.getByLabel('Quantity', { exact: true }).first().fill('50');
+  await expect(page.getByLabel(/^Quantity/).first()).toBeFocused(); // focus moved to the affected field
+  await page.getByLabel(/^Quantity/).first().fill('50');
   await expect(page.getByText('Saved', { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/Customer total/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Submit for approval' }).click();
@@ -91,7 +86,7 @@ test('price override triggers approval → finance approves exact revision → s
   await dialog(fin).getByRole('button', { name: 'Approve revision' }).click();
   await expect(fin.getByText('Approved for this exact revision')).toBeVisible();
   await fin.getByRole('tab', { name: 'Internal pricing' }).click();
-  await expect(fin.getByText('Cost waterfall').first()).toBeVisible(); // cost visibility only for authorised users
+  await expect(fin.getByRole('img', { name: 'Cost waterfall' })).toBeVisible(); // cost visibility only for authorised users
   // sales issues
   await page.reload();
   const issue = page.getByRole('button', { name: 'Issue quotation' });

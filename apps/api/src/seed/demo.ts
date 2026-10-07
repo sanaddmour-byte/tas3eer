@@ -6,6 +6,7 @@ import { ctxFromMembership } from '../auth.js';
 import { db, pool, schema } from '../db/client.js';
 import { runMigrations } from '../db/migrate.js';
 import * as Q from '../services/quotes.js';
+import { computeImpact } from '../routes/priceBatches.js';
 import { createClientProject, createTenant, createUser, iso, seedCatalog, seedTaxAndTerms } from './fixture.js';
 import type { QuoteDocument } from '@rm/shared';
 
@@ -47,7 +48,7 @@ export async function seedDemo() {
     const [cur] = await db.select().from(S.materialPriceVersions).where(eq(S.materialPriceVersions.materialId, cat.materials.CEM!));
     const cems = await db.select().from(S.materialPriceVersions).where(eq(S.materialPriceVersions.plantId, cat.plants.MRK!));
     const c = cems.find((x) => x.materialId === cat.materials.CEM!)!;
-    await db.insert(S.priceBatchItems).values({ tenantId: t.id, batchId: b!.id, rowNo: 1, materialId: c.materialId, plantId: c.plantId, baseVersionId: c.id, basePrice: c.price, baseBasis: c.basis, baseFreight: c.freight, proposedPrice: (Number(c.price) * (1 + pct / 100)).toFixed(3), proposedBasis: c.basis, proposedFreight: c.freight, effectiveFrom: iso(1), impact: [] });
+    await db.insert(S.priceBatchItems).values({ tenantId: t.id, batchId: b!.id, rowNo: 1, materialId: c.materialId, plantId: c.plantId, baseVersionId: c.id, basePrice: c.price, baseBasis: c.basis, baseFreight: c.freight, proposedPrice: (Number(c.price) * (1 + pct / 100)).toFixed(3), proposedBasis: c.basis, proposedFreight: c.freight, effectiveFrom: iso(1), impact: (await computeImpact(db, { tenantId: t.id } as any, [{ materialId: c.materialId, plantId: c.plantId, price: (Number(c.price) * (1 + pct / 100)).toFixed(3), basis: c.basis, freight: c.freight, effectiveFrom: iso(1) }]))[c.plantId] ?? [] });
     if (status === 'submitted') await db.update(S.priceBatches).set({ status: 'submitted', submittedBy: by.user.id, submittedAt: new Date() }).where(eq(S.priceBatches.id, b!.id));
     void cur;
   };

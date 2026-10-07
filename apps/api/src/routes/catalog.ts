@@ -131,7 +131,7 @@ async function mixList(ctx: Ctx, opts: { status?: string; plantId?: string } = {
   const ings = await db.select({ rid: S.mixIngredients.mixRevisionId, n: sql<number>`count(*)::int` }).from(S.mixIngredients).where(eq(S.mixIngredients.tenantId, ctx.tenantId)).groupBy(S.mixIngredients.mixRevisionId);
   return mixes.map((m) => {
     const plantIds = mp.filter((x) => x.mixId === m.id).map((x) => x.plantId).filter((p) => plantAllowed(ctx, p));
-    const mrevs = revs.filter((r) => r.mixId === m.id).map((r) => ({ id: r.id, revNo: r.revNo, status: r.status, spec: r.spec, ingredientCount: ings.find((i) => i.rid === r.id)?.n ?? 0, approvedAt: r.approvedAt, missingInfo: missingInfo(r.spec as any, ings.find((i) => i.rid === r.id)?.n ?? 0) }));
+    const mrevs = revs.filter((r) => r.mixId === m.id).map((r) => ({ id: r.id, revNo: r.revNo, status: r.status, spec: r.spec, ingredientCount: ings.find((i) => i.rid === r.id)?.n ?? 0, approvedAt: r.approvedAt, submittedByMe: r.submittedBy === ctx.userId && ctx.tenantSettings.separateProposerApprover, missingInfo: missingInfo(r.spec as any, ings.find((i) => i.rid === r.id)?.n ?? 0) }));
     return { ...m, plantIds, revisions: mrevs, approvedRevision: mrevs.find((r) => r.status === 'approved') ?? null };
   }).filter((m) => m.plantIds.length > 0 || ctx.allPlants);
 }

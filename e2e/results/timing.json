@@ -1,0 +1,6 @@
+{
+  "flow": "new quotation → submitted (existing client + approved mix; includes one validation round-trip)",
+  "ms": 2569,
+  "seconds": 2.6,
+  "limitSeconds": 120
+}

@@ -20,9 +20,9 @@ Workflow: **configure company → maintain material prices & plant costs → app
 | OpenAPI | `docs/openapi.json` generated from the Zod schemas (`npx tsx scripts/gen-openapi.ts`) |
 
 ```
-packages/engine   pricing engine, units, tax, services, plant costing      (38+ unit tests)
+packages/engine   pricing engine, units, tax, services, plant costing      (39 unit tests)
 packages/shared   capabilities, roles, Zod schemas
-apps/api          Express API, Drizzle schema + migrations, demo seed, PDF   (27 integration tests, real PostgreSQL)
+apps/api          Express API, Drizzle schema + migrations, demo seed, PDF   (29 integration tests, real PostgreSQL)
 apps/web          React app (EN/AR), offline store, builder, price book …
 e2e/              Playwright end-to-end, mobile, Arabic, a11y, offline specs
 docs/             ASSUMPTIONS.md, openapi.json, screenshots
@@ -79,3 +79,19 @@ and the draft outbox. Drafts autosave locally first (“Offline draft — saved 
 `POST /sync/operations` (unique key per operation), use optimistic concurrency with a visible conflict dialog, never overwrite unsynced drafts on
 refresh, and never submit/approve/issue offline. Sign-out wipes the store. See `docs/ASSUMPTIONS.md` for revocation limits. The Expo app is **not** built
 (deferred); the engine and shared packages are structured for reuse and the same snapshot/outbox/idempotency/conflict rules apply to a SQLite store.
+
+## Verification (details in [`docs/TEST-RESULTS.md`](docs/TEST-RESULTS.md))
+39 engine tests · 29 API integration tests (real PostgreSQL) · 11 Playwright end-to-end tests (company creation → issued PDF → price change → issued quote unchanged → reprice; offline/conflict; Arabic 360 px flow; responsive 360/768/1024/1440; axe scan with 0 violations) — all passing on the final build.
+Automated checks are not a full WCAG audit; drafting-time “under two minutes” was **not** measured with humans (the automated flow takes ≈2.5 s of machine time).
+
+## Screenshots (`docs/screenshots/`, real running app on the demo tenant)
+`01-overview-sales` · `02-quotation-list` · `03-quotation-builder` · `04-approval-banner` · `05-internal-pricing` (cost-visible roles only) · `06-price-book` · `07-price-update-impact` ·
+`08-plant-costs` (sensitivity) · `09-mix-pricing` · `10-mobile-builder` · `11-forbidden-for-sales` · `12-overview-pricing` · `13-arabic-quotation-list` · `mobile-ar-*` (360 px Arabic flow).
+
+## Deferred / limitations
+* **Expo/native app not built.** Shared logic (`@rm/engine`, `@rm/shared`) is framework-free for reuse; SQLite store with the same outbox/idempotency/conflict rules is the intended design.
+* **No generated API client**: `docs/openapi.json` is generated from the Zod schemas, but the web app uses a small typed fetch wrapper.
+* No email/ERP/e-invoicing integrations; sharing = PDF download. No automatic email of quotations or invitations.
+* Tax rules, terms wording, costs and Arabic copy need company confirmation/review (see `docs/ASSUMPTIONS.md`).
+* `Dockerfile` untested; PDFs need a Chromium binary on the server.
+* Revoked access is not enforced on a device that stays offline (documented limitation).

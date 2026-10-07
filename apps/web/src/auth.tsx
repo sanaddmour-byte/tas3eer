@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
   const login = async (email: string, password: string) => {
     const m = await post<Me>('/auth/login', { email, password });
-    await adopt(m); setMeState(m); setStoreReady(true); if (m.user.locale) setLang(m.user.locale as any); qc.clear();
+    await adopt(m); cacheMe(m); setMeState(m); setStoreReady(true); if (m.user.locale) setLang(m.user.locale as any); qc.clear();
   };
   const logout = async () => {
     await post('/auth/logout').catch(() => {});

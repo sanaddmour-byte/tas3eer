@@ -176,6 +176,20 @@ describe('quotation lifecycle, snapshots and approvals', () => {
   });
 });
 
+describe('tax-inclusive price entry', () => {
+  it('solves the unit rate for an inclusive total; rejects ambiguous (multi-line) and unauthorised use', async () => {
+    const sales = await loginAs(fx.email('sales'));
+    const one = await sales.post('/api/quotations/solve-inclusive').send({ doc: quoteDoc(fx), target: '4640' });
+    expect(one.status).toBe(200);
+    expect(Math.abs(Number(one.body.delta))).toBeLessThan(0.05); // forward calculation reproduces the target within rounding
+    expect(Number(one.body.achievedTotal)).toBeCloseTo(4640, 1);
+    const two = await sales.post('/api/quotations/solve-inclusive').send({ doc: quoteDoc(fx, { lines: [{ id: 'a', mixRevisionId: fx.cat.mixes.C30!.revId, quantityM3: '10', priceOverride: null, costOverride: null }, { id: 'b', mixRevisionId: fx.cat.mixes.C35!.revId, quantityM3: '10', priceOverride: null, costOverride: null }] }), target: '4640' });
+    expect(two.status).toBe(422); expect(two.body.error.message).toMatch(/exactly one concrete line/);
+    const viewer = await loginAs(fx.email('viewer'));
+    expect((await viewer.post('/api/quotations/solve-inclusive').send({ doc: quoteDoc(fx), target: '4640' })).status).toBe(403);
+  });
+});
+
 describe('PDF rendering', () => {
   it('renders Arabic with RTL, embeds both fonts, repeats table headings across pages and reconciles totals', async () => {
     const sales = await loginAs(fx.email('sales'));

@@ -57,8 +57,7 @@ export const emit = () => listeners.forEach((f) => f());
 const savedListeners = new Set<(id: string, res: any) => void>();
 export const onSaved = (f: (id: string, res: any) => void) => { savedListeners.add(f); return () => { savedListeners.delete(f); }; };
 
-let flushing = false;
-let lastKeySent: Record<string, string> = {};
+let running: Promise<void> | null = null;
 /** Queue (and coalesce) a draft save. The local write is durable BEFORE any network attempt. */
 export async function queueSave(p: { id: string; doc: any; baseVersion: number; revNo: number; create: boolean }) {
   const prev = await getOp(p.id);
@@ -66,30 +65,32 @@ export async function queueSave(p: { id: string; doc: any; baseVersion: number; 
   emit();
   void flush();
 }
-export async function flush() {
-  if (flushing || !db) return;
-  flushing = true;
-  try {
-    for (const op of (await listOutbox()).sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
-      if (op.status === 'conflict' || op.status === 'error') continue;
-      lastKeySent[op.id] = op.key;
-      try {
-        const res = await post('/sync/operations', { idempotencyKey: op.key, type: 'quotation.save', quotationId: op.id, revNo: op.revNo, baseVersion: op.baseVersion, create: op.create, doc: op.doc });
-        const cur = await getOp(op.id);
-        if (cur && cur.key === op.key) await delOp(op.id);
-        else if (cur) await putOp({ ...cur, baseVersion: res.version, revNo: res.revNo, create: false });
-        await db!.put('kv', new Date().toISOString(), 'lastSync');
-        savedListeners.forEach((f) => f(op.id, res));
-      } catch (e) {
-        if (e instanceof ApiError && e.status === 0) break; // offline: keep queue, retry later
-        const cur = (await getOp(op.id)) ?? op;
-        if (e instanceof ApiError && e.status === 409 && e.body?.serverDoc) await putOp({ ...cur, status: 'conflict', serverDoc: e.body.serverDoc, serverVersion: e.body.serverVersion, error: e.message });
-        else if (e instanceof ApiError && e.status === 409) await putOp({ ...cur, status: 'error', error: e.message });
-        else await putOp({ ...cur, status: 'error', error: (e as Error).message });
-        savedListeners.forEach((f) => f(op.id, { error: e }));
+/** Sends pending operations in order. Concurrent callers wait for the in-flight pass and then run another pass, so callers can `await flush()` and know the queue was drained. */
+export function flush(): Promise<void> {
+  if (!db) return Promise.resolve();
+  if (running) return running.then(() => flush());
+  running = (async () => {
+    try {
+      for (const op of (await listOutbox()).sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
+        if (op.status === 'conflict' || op.status === 'error') continue;
+        try {
+          const res = await post('/sync/operations', { idempotencyKey: op.key, type: 'quotation.save', quotationId: op.id, revNo: op.revNo, baseVersion: op.baseVersion, create: op.create, doc: op.doc });
+          const cur = await getOp(op.id);
+          if (cur && cur.key === op.key) await delOp(op.id);
+          else if (cur) await putOp({ ...cur, baseVersion: res.version, revNo: res.revNo, create: false }); // a newer edit arrived while sending
+          await db!.put('kv', new Date().toISOString(), 'lastSync');
+          savedListeners.forEach((f) => f(op.id, res));
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 0) break; // offline: keep the queue, retry when back online
+          const cur = (await getOp(op.id)) ?? op;
+          if (e instanceof ApiError && e.status === 409 && e.body?.serverDoc) await putOp({ ...cur, status: 'conflict', serverDoc: e.body.serverDoc, serverVersion: e.body.serverVersion, error: e.message });
+          else await putOp({ ...cur, status: 'error', error: (e as Error).message });
+          savedListeners.forEach((f) => f(op.id, { error: e }));
+        }
       }
-    }
-  } finally { flushing = false; emit(); }
+    } finally { emit(); }
+  })().finally(() => { running = null; });
+  return running;
 }
 export async function resolveConflict(id: string, choice: 'mine' | 'server') {
   const op = await getOp(id);

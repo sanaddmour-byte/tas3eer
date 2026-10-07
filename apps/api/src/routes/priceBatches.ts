@@ -56,7 +56,7 @@ async function validateRows(q: Db | Tx, ctx: Ctx, rows: RowIn[]) {
   return { items, errors };
 }
 
-async function computeImpact(q: Db | Tx, ctx: Ctx, items: { materialId: string; plantId: string; price: string; basis: string; freight: string | null; effectiveFrom: string }[]) {
+export async function computeImpact(q: Db | Tx, ctx: Ctx, items: { materialId: string; plantId: string; price: string; basis: string; freight: string | null; effectiveFrom: string }[]) {
   const materials = await loadMaterials(q, ctx.tenantId);
   const mixPlants = await q.select().from(S.mixPlants).where(eq(S.mixPlants.tenantId, ctx.tenantId));
   const approved = await q.select().from(S.mixRevisions).where(and(eq(S.mixRevisions.tenantId, ctx.tenantId), eq(S.mixRevisions.status, 'approved')));

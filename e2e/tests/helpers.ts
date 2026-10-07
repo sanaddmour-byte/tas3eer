@@ -3,7 +3,14 @@ import ExcelJS from 'exceljs';
 
 export const PW = 'E2e!Passw0rd-2026x';
 export const iso = (offset: number) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
-export const state: Record<string, any> = {};
+import fs from 'node:fs';
+const STATE_FILE = 'results/state.json';
+const load = (): Record<string, any> => { try { return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch { return {}; } };
+/** State shared between spec files (each file re-evaluates modules), persisted as JSON. */
+export const state: Record<string, any> = new Proxy(load(), {
+  get: (_t, k: string) => load()[k],
+  set: (_t, k: string, v) => { const s = load(); s[k] = v; fs.mkdirSync('results', { recursive: true }); fs.writeFileSync(STATE_FILE, JSON.stringify(s)); return true; },
+});
 
 export async function loginUI(page: Page, email: string, password = PW) {
   await page.goto('/login');
@@ -40,4 +47,10 @@ export async function nav(page: Page, name: string) { await page.getByRole('link
 export async function expectNoHScroll(page: Page, label: string) {
   const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(over, `horizontal overflow on ${label}`).toBeLessThanOrEqual(1);
+}
+
+export async function pickClient(page: Page) {
+  const c = page.getByRole('combobox', { name: 'Client', exact: true });
+  await c.click(); await c.fill('Al-Noor');
+  await page.getByRole('option', { name: /Al-Noor Contracting/ }).click();
 }

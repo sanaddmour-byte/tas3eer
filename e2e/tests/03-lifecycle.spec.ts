@@ -34,7 +34,13 @@ test('publish a price change → issued quotation is unchanged → repriced revi
   await expect(sales.getByText('Revision 2')).toBeVisible();
   await expect(sales.getByText('Prices pinned')).toHaveCount(0);
   await expect(sales.getByText('Draft', { exact: true }).first()).toBeVisible();
-  await expect(sales.locator('.trow.grand span').last()).not.toHaveText(before);
+  // the quotation carries a manual price override, so the customer rate is unchanged — but the internal cost moved with the new cement price
+  const { ctx: f2, page: fin2 } = await roleContext(browser, 'finance@e2e.example');
+  await fin2.goto(`${state.quoteUrl}?rev=1`); await fin2.getByRole('tab', { name: 'Internal pricing' }).click();
+  await expect(fin2.getByRole('cell', { name: /47\.3160/ })).toBeVisible(); // frozen: cement at 80 JOD/tonne
+  await fin2.goto(`${state.quoteUrl}?rev=2`); await fin2.getByRole('tab', { name: 'Internal pricing' }).click();
+  await expect(fin2.getByRole('cell', { name: /52\.5660/ })).toBeVisible(); // repriced: cement at 95 JOD/tonne (+5.25 JOD/m³)
+  await f2.close();
   // revision 1 remains issued/superseded and unchanged
   await sales.goto(`${state.quoteUrl}?rev=1`);
   expect(await sales.locator('.trow.grand span').last().innerText()).toBe(before);

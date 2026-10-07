@@ -58,6 +58,7 @@ test('first-run: create company via guarded setup, then configure catalog, price
   await dialog(page).getByLabel('Email').fill('pricing@e2e.example'); await dialog(page).getByLabel('Role').selectOption('pricing'); await dialog(page).getByLabel('Access to all plants').check();
   await dialog(page).getByRole('button', { name: 'Create invitation link' }).click();
   const link = await page.getByTestId('invite-link').innerText();
+  await page.keyboard.press('Escape'); // dialog closes, focus returns to the trigger
   const ctx2 = await browser.newContext(); const p2 = await ctx2.newPage();
   await p2.goto(link.replace(/^https?:\/\/[^/]+/, ''));
   await p2.getByLabel('Your name').fill('Pia Pricing'); await p2.getByLabel('Choose a password').fill(PW); await p2.getByRole('button', { name: 'Activate account' }).click();
@@ -125,28 +126,27 @@ test('pricing & finance: tax verification, price batch via Excel (maker/checker)
   await pricing.getByRole('button', { name: 'Create first cost version' }).click();
   const d = dialog(pricing);
   await d.getByLabel('Effective from').first().fill(iso(-100));
-  await d.getByRole('button', { name: 'Add fixed cost' }).click();
-  await d.getByLabel('Cost').last().fill('Wages'); await d.getByLabel('Nature').last().selectOption('wages'); await d.getByLabel('Amount').last().fill('20000');
-  await d.getByRole('button', { name: 'Add fixed cost' }).click();
-  await d.getByLabel('Cost').last().fill('Depreciation'); await d.getByLabel('Nature').last().selectOption('depreciation'); await d.getByLabel('Amount').last().fill('10000');
-  await d.getByRole('button', { name: 'Add variable cost' }).click();
-  await d.getByLabel('Cost').last().fill('Electricity'); await d.getByLabel('Nature').last().selectOption('utilities'); await d.getByLabel('Amount').last().fill('1');
+  const row = async (i: number, name: string, nature: string, amount: string) => {
+    await d.getByLabel('Cost', { exact: true }).nth(i).fill(name); await d.getByLabel(/^Nature/).nth(i).selectOption(nature); await d.getByLabel(/^Amount/).nth(i).fill(amount);
+  };
+  await d.getByRole('button', { name: 'Add fixed cost' }).click(); await row(0, 'Wages', 'wages', '20000');
+  await d.getByRole('button', { name: 'Add fixed cost' }).click(); await row(1, 'Depreciation', 'depreciation', '10000');
+  await d.getByRole('button', { name: 'Add variable cost' }).click(); await row(2, 'Electricity', 'utilities', '1');
   await d.getByLabel('Corporate overhead').fill('1.2'); await d.getByLabel('Risk / finance provision').fill('0.5');
   await d.getByLabel('Customer charge (per m³)').fill('4.5'); await d.getByLabel('Estimated cost (per m³)').first().fill('3.6');
   await d.getByLabel('Volume rate').fill('2'); await d.getByLabel('Minimum charge').fill('150'); await d.getByLabel('Mobilization / setup fee').fill('0'); await d.getByLabel('Additional hour rate').fill('30');
   // double counting is rejected: a second "wages" nature
-  await d.getByRole('button', { name: 'Add fixed cost' }).click();
-  await d.getByLabel('Cost').last().fill('Staff salaries'); await d.getByLabel('Nature').last().selectOption('wages'); await d.getByLabel('Amount').last().fill('500');
+  await d.getByRole('button', { name: 'Add fixed cost' }).click(); await row(2, 'Staff salaries', 'wages', '500');
   await d.getByRole('button', { name: 'Save draft revision' }).click();
   await expect(d.getByRole('alert')).toContainText(/double count/i);
-  await d.getByRole('button', { name: 'Remove' }).last().click();
+  await d.getByRole('button', { name: 'Remove' }).nth(2).click();
   await d.getByRole('button', { name: 'Save draft revision' }).click();
-  await expect(pricing.getByRole('tab', { name: 'Versions' })).toHaveAttribute('aria-selected', 'true');
+  await expect(pricing.getByRole('heading', { name: 'Versions' })).toBeVisible();
   await expect(pricing.getByText('Draft', { exact: true }).first()).toBeVisible();
   // proposer cannot approve own version; finance can
   await pricing.getByRole('button', { name: 'Approve & publish' }).click();
   await expect(pricing.getByText(/different user must approve/i)).toBeVisible();
-  await finance.goto('/plant-costs'); await finance.getByRole('tab', { name: 'Versions' }).click();
+  await finance.goto('/plant-costs');
   await finance.getByRole('button', { name: 'Approve & publish' }).click();
   await finance.reload();
   await expect(finance.getByText('Allocated fixed cost per m³')).toBeVisible();
@@ -204,7 +204,8 @@ test('technical: create mix, submit, second user approves; recipe immutable afte
   await expect(tech.getByText('350 kg/m³')).toBeVisible();
   await tech.getByRole('button', { name: 'Submit for technical approval' }).click();
   await expect(tech.getByText('Awaiting technical approval').first()).toBeVisible();
-  await expect(tech.getByRole('button', { name: 'Approve revision' })).toHaveCount(0); // no technical-approve for the submitter's tech user? (separation)
+  await expect(tech.getByRole('button', { name: 'Approve revision' })).toBeDisabled(); // maker/checker: the submitter cannot approve
+  await expect(tech.getByText('A different user must approve a revision you submitted.')).toBeVisible();
   await qa.goto(tech.url().replace('http://localhost:4100', ''));
   await qa.getByRole('button', { name: 'Approve revision' }).click();
   await expect(qa.getByText('Approved').first()).toBeVisible();

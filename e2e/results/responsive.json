@@ -1,0 +1,362 @@
+[
+ {
+  "role": "pricing",
+  "path": "/",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/quotations",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/mixes",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book/updates",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/plant-costs",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/approvals",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/clients",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/quotations",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/mixes",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book/updates",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/plant-costs",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/approvals",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/clients",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/quotations",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/mixes",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book/updates",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/plant-costs",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/approvals",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/clients",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/quotations",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/mixes",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/price-book/updates",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/plant-costs",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/approvals",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "pricing",
+  "path": "/clients",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/users",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/audit",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/settings",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/users",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/audit",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/settings",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/users",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/audit",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/settings",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/users",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/audit",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "admin",
+  "path": "/admin/settings",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations/new",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/mixes",
+  "width": 360,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations/new",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/mixes",
+  "width": 768,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations/new",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/mixes",
+  "width": 1024,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/quotations/new",
+  "width": 1440,
+  "overflowPx": 0
+ },
+ {
+  "role": "sales",
+  "path": "/mixes",
+  "width": 1440,
+  "overflowPx": 0
+ }
+]
