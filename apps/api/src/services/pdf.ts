@@ -56,7 +56,7 @@ export function quotationHtml(snap: any, meta: { number: string; issuedAt: Date 
   th{background:#101E32;color:#fff;font-weight:600;font-size:9pt;text-align:${rtl ? 'right' : 'left'};padding:6px 8px}td{padding:6px 8px;border-bottom:1px solid #E0E6EE;vertical-align:top}
   tr{break-inside:avoid;page-break-inside:avoid}.n{text-align:${rtl ? 'left' : 'right'};font-variant-numeric:tabular-nums;white-space:nowrap}th.n{text-align:${rtl ? 'left' : 'right'}}.u{white-space:nowrap;color:#57667A;width:44px}.sub{font-size:8.5pt;color:#57667A}
   .tot td{font-weight:600;border-bottom:none}.grand td{font-size:12pt;font-weight:700;background:#F4F6F9;border-top:2px solid #101E32}
-  h2{font-size:11.5pt;margin:14px 0 4px;color:#101E32}.notes{white-space:pre-wrap}ol{padding-${rtl ? 'right' : 'left'}:18px;margin:4px 0}li{margin-bottom:4px;break-inside:avoid}
+  h2{font-size:11.5pt;margin:14px 0 4px;color:#101E32}.notes{white-space:pre-wrap}ol{padding-${rtl ? 'right' : 'left'}:30px;margin:4px 0}li{margin-bottom:4px;break-inside:avoid}
   .sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px;break-inside:avoid}.sig{border-top:1px solid #182437;padding-top:4px;margin-top:46px;font-size:9pt;color:#57667A}
   .stamp{color:#B42318;font-weight:700;border:2px solid #B42318;display:inline-block;padding:2px 10px;border-radius:4px;margin-bottom:8px}
   .num{direction:ltr;unicode-bidi:isolate;display:inline-block}</style></head><body>
