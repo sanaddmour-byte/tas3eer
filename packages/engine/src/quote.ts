@@ -56,7 +56,7 @@ export function priceQuotation(input: QuoteInput): QuoteResult {
   let totalCost: Dec | null = ZERO;
   let totalVariable: Dec | null = ZERO; // materials + variable production (before fixed allocation)
   const priceVersionIds = new Set<string>();
-  const logical = new Map<string, true>();
+  const logical = new Map<string, { concrete: Dec; qty: Dec }>();
   const seenLineIds = new Set<string>();
 
   for (const l of input.lines) {
@@ -124,7 +124,7 @@ export function priceQuotation(input: QuoteInput): QuoteResult {
       base.internal.marginAfterFull = S(amount.minus(lineCost), mdp);
       if (totalCost) totalCost = totalCost.plus(lineCost);
       if (totalVariable) totalVariable = totalVariable.plus(rnd(qty.mul(variablePerM3), mdp));
-      logical.set(`${l.mixRevisionId}|${rate.toString()}`, true);
+      { const k = `${l.mixRevisionId}|${rate.toString()}`; const cur = logical.get(k); logical.set(k, { concrete: (cur?.concrete ?? ZERO).plus(amount), qty: (cur?.qty ?? ZERO).plus(qty) }); }
       const minMargin = D(l.policy.minMarginPct);
       if (margin && margin.lt(minMargin)) {
         approvals.push({ code: 'below_margin_threshold', message: `Margin on ${l.mixCode} is below the approved threshold`, detail: { marginPct: S(margin, 3), thresholdPct: minMargin.toString() } });
@@ -189,7 +189,7 @@ export function priceQuotation(input: QuoteInput): QuoteResult {
     try {
       taxResult = computeTax(input.tax, {
         componentAmounts: { concrete: concreteSubtotal, delivery: deliveryTotal, pumping: pumpingTotal, other: otherTotal } as Record<TaxComponent, Dec>,
-        totalConcreteM3: totalM3, logicalLineCount: Math.max(logical.size, 1),
+        totalConcreteM3: totalM3, logicalLineCount: Math.max(logical.size, 1), lines: [...logical.values()],
       }, mdp);
       if (input.tax.status !== 'verified') issues.push(err('tax_unverified', 'Tax policy requires verification before issue.', 'tax'));
     } catch (e) { issues.push(...(e instanceof PricingError ? e.issues : [err('tax_invalid', (e as Error).message, 'tax')])); }
@@ -269,12 +269,14 @@ export function previewCustomerTotals(input: PreviewInput) {
   const r = resolveRounding(input.rounding);
   const issues: Issue[] = [];
   let totalM3 = ZERO, concrete = ZERO;
+  const lg = new Map<string, { concrete: Dec; qty: Dec }>();
   const lines = input.lines.map((l) => {
     try {
       const q = D(l.quantityM3, 'quantity');
       if (q.lte(0)) throw new Error('quantity');
       const amount = rnd(q.mul(D(l.ratePerM3)), r.moneyDp);
       totalM3 = totalM3.plus(q); concrete = concrete.plus(amount);
+      { const k = `${l.mixRevisionId}|${D(l.ratePerM3).toString()}`; const cur = lg.get(k); lg.set(k, { concrete: (cur?.concrete ?? ZERO).plus(amount), qty: (cur?.qty ?? ZERO).plus(q) }); }
       return { id: l.id, amount: S(amount, r.moneyDp) };
     } catch {
       issues.push(err('quantity_invalid', 'Enter a valid quantity in m³.', `lines[${l.id}].quantity`));
@@ -294,8 +296,7 @@ export function previewCustomerTotals(input: PreviewInput) {
   const subtotal = concrete.plus(delivery).plus(pumping).plus(other);
   let tax = null as ReturnType<typeof computeTax> | null;
   if (input.tax && !issues.length) {
-    const keys = new Set(input.lines.map((l) => `${l.mixRevisionId}|${D(l.ratePerM3).toString()}`));
-    tax = computeTax(input.tax, { componentAmounts: { concrete, delivery, pumping, other } as Record<TaxComponent, Dec>, totalConcreteM3: totalM3, logicalLineCount: Math.max(keys.size, 1) }, r.moneyDp);
+    tax = computeTax(input.tax, { componentAmounts: { concrete, delivery, pumping, other } as Record<TaxComponent, Dec>, totalConcreteM3: totalM3, logicalLineCount: Math.max(lg.size, 1), lines: [...lg.values()] }, r.moneyDp);
   }
   return {
     lines, services, issues, totalVolumeM3: totalM3.toString(), concreteSubtotal: S(concrete, r.moneyDp), deliveryTotal: S(delivery, r.moneyDp),

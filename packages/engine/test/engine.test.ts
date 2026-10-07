@@ -244,3 +244,31 @@ describe('offline preview parity', () => {
     expect(pv.subtotalExTax).toBe(full.customer.subtotalExTax);
   });
 });
+
+describe('company tax scenarios: Exempt 0% / 8% / 16% on the amount above JOD 16 per line', () => {
+  const sc = (ratePct: string) => ({ ...tax, ratePct, deductionAmount: '16', deductionBasis: 'per_line' }) as any;
+  const doc = (lines: [number, number][], svc = 0) => ({ componentAmounts: { concrete: new Dec(lines.reduce((a, l) => a + l[0], 0)), delivery: new Dec(svc), pumping: new Dec(0), other: new Dec(0) }, totalConcreteM3: new Dec(1), logicalLineCount: lines.length, lines: lines.map(([c, q]) => ({ concrete: new Dec(c), qty: new Dec(q) })) });
+  it('JOD 100 → 6.72 at 8% and 13.44 at 16%; 16 or less → 0', () => {
+    expect(computeTax(sc('8'), doc([[100, 1]]), 3).tax).toBe('6.720');
+    expect(computeTax(sc('16'), doc([[100, 1]]), 3).tax).toBe('13.440');
+    expect(computeTax(sc('16'), doc([[16, 1]]), 3).tax).toBe('0.000');
+    expect(computeTax(sc('16'), doc([[9, 1]]), 3).tax).toBe('0.000');
+    expect(computeTax({ ...sc('0') } as any, doc([[100, 1]]), 3).tax).toBe('0.000'); // Exempt
+  });
+  it('each line is taxed separately: a small line contributes nothing (not netted against a big one)', () => {
+    expect(computeTax(sc('16'), doc([[100, 1], [10, 1]]), 3).tax).toBe('13.440'); // document-level netting would give 16 × (110 − 32) = 12.48
+  });
+  it('delivery/pumping charges join the line subtotal pro rata by quantity', () => {
+    // lines 60 m3 (amount 20) and 40 m3 (amount 10) + 100 delivery → shares 60 / 40 → subtotals 80 and 50 → tax 16%×(64+34)
+    expect(computeTax(sc('16'), doc([[20, 60], [10, 40]], 100), 3).tax).toBe('15.680');
+  });
+  it('splitting a line with the same mix and rate cannot change tax', () => {
+    const q = quote({ tax: sc('16') }); const one = priceQuotation(q);
+    const l = q.lines[0]!; q.lines = [{ ...l, id: 'a', quantityM3: '30' }, { ...l, id: 'b', quantityM3: '20' }];
+    expect(priceQuotation(q).customer.taxAmount).toBe(one.customer.taxAmount);
+  });
+  it('a manually overridden line is taxed like any other line', () => {
+    const q = quote({ tax: sc('16') }); q.lines[0]!.priceOverride = { perM3: '50', reason: 'x' };
+    expect(priceQuotation(q).customer.taxAmount).toBe((Math.round((2500 - 16) * 0.16 * 1000) / 1000).toFixed(3));
+  });
+});

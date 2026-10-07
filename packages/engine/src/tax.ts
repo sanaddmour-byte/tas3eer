@@ -7,6 +7,8 @@ export interface TaxDocument {
   totalConcreteM3: Dec;
   /** Logical lines: lines sharing mix revision AND rate are merged so splitting a line cannot change tax. */
   logicalLineCount: number;
+  /** Concrete amount and quantity per logical line (used by the per-line deduction basis). */
+  lines?: { concrete: Dec; qty: Dec }[];
 }
 
 export function computeTax(policy: TaxPolicyInput, doc: TaxDocument, moneyDp: number): TaxResult {
@@ -14,6 +16,27 @@ export function computeTax(policy: TaxPolicyInput, doc: TaxDocument, moneyDp: nu
   if (rate.lt(0) || rate.gt(100)) throw new PricingError([err('tax_rate_range', 'Tax rate must be between 0% and 100%.')]);
   const ded = D(policy.deductionAmount, 'deduction');
   if (ded.lt(0)) throw new PricingError([err('tax_deduction_negative', 'Tax deduction cannot be negative.')]);
+  const comp = {} as Record<TaxComponent, string>;
+  (['concrete', 'delivery', 'pumping', 'other'] as TaxComponent[]).forEach((c) => (comp[c] = S(doc.componentAmounts[c] ?? ZERO, moneyDp)));
+  if (policy.deductionBasis === 'per_line' && ded.gt(0) && doc.lines?.length) {
+    // tax = Σ over lines of max(line subtotal − deduction, 0) × rate, where a line subtotal is its concrete amount plus its
+    // volume-proportional share of the taxable delivery / pumping / other charges.
+    const svc = (['delivery', 'pumping', 'other'] as const).filter((c) => policy.taxableComponents.includes(c)).reduce((a, c) => a.plus(doc.componentAmounts[c] ?? ZERO), ZERO);
+    const totalQty = doc.lines.reduce((a, l) => a.plus(l.qty), ZERO);
+    let allocated = ZERO, sumSub = ZERO, sumBase = ZERO, sumTax = ZERO;
+    doc.lines.forEach((l, i) => {
+      const share = i === doc.lines!.length - 1 ? svc.minus(allocated) : rnd(svc.mul(l.qty).div(totalQty), moneyDp);
+      allocated = allocated.plus(share);
+      const sub = (policy.taxableComponents.includes('concrete') ? l.concrete : ZERO).plus(share);
+      let base = sub.minus(ded);
+      if (base.lt(0) && policy.nonNegativeBase) base = ZERO;
+      sumSub = sumSub.plus(sub); sumBase = sumBase.plus(base); sumTax = sumTax.plus(policy.exempt ? ZERO : rnd(base.mul(rate).div(HUNDRED), moneyDp));
+    });
+    return {
+      policyId: policy.id, policyName: policy.name, policyStatus: policy.status, ratePct: rate.toString(), taxableComponents: policy.taxableComponents, componentAmounts: comp,
+      taxableBeforeDeduction: S(sumSub, moneyDp), deduction: S(sumSub.minus(sumBase), moneyDp), deductionBasis: policy.deductionBasis, taxableBase: S(policy.exempt ? ZERO : sumBase, moneyDp), tax: S(sumTax, moneyDp),
+    };
+  }
   let before = ZERO;
   for (const c of policy.taxableComponents) before = before.plus(doc.componentAmounts[c] ?? ZERO);
   let deduction = ZERO;
@@ -25,8 +48,6 @@ export function computeTax(policy: TaxPolicyInput, doc: TaxDocument, moneyDp: nu
   if (base.lt(0) && policy.nonNegativeBase) base = ZERO;
   const exempt = !!policy.exempt;
   const tax = exempt ? ZERO : rnd(base.mul(rate).div(HUNDRED), moneyDp);
-  const comp = {} as Record<TaxComponent, string>;
-  (['concrete', 'delivery', 'pumping', 'other'] as TaxComponent[]).forEach((c) => (comp[c] = S(doc.componentAmounts[c] ?? ZERO, moneyDp)));
   return {
     policyId: policy.id, policyName: policy.name, policyStatus: policy.status, ratePct: rate.toString(),
     taxableComponents: policy.taxableComponents, componentAmounts: comp,

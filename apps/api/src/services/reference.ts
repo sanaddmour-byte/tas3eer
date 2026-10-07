@@ -46,7 +46,7 @@ export async function loadTax(q: Q, tenantId: string, asOf: string, id?: string 
     return r ?? null;
   }
   const rows = await q.select().from(taxPolicyVersions).where(and(eq(taxPolicyVersions.tenantId, tenantId), inArray(taxPolicyVersions.status, ['verified', 'demo']), active(taxPolicyVersions, asOf)))
-    .orderBy(asc(sql`case when ${taxPolicyVersions.status} = 'verified' then 0 else 1 end`), desc(taxPolicyVersions.validFrom));
+    .orderBy(asc(sql`case when ${taxPolicyVersions.status} = 'verified' then 0 else 1 end`), desc(taxPolicyVersions.validFrom), desc(taxPolicyVersions.ratePct));
   return rows[0] ?? null;
 }
 

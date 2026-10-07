@@ -256,6 +256,7 @@ catalogRouter.get('/mix-revisions/:id/pricing', wrap(async (req, res) => {
     out.push({
       plantId: p.id, plantCode: p.code, plantName: p.nameEn, asOf: q.asOf, comparable: line.calculable, customerRatePerM3: line.customerRatePerM3,
       issues: errors.map((i) => ({ code: i.code, message: i.message, path: i.path })), warnings: result.issues.filter((i) => i.severity === 'warning').map((i) => ({ code: i.code, message: i.message })),
+      taxOnUnitPrice: result.customer.tax ? { policy: result.customer.tax.policyName, status: result.customer.tax.policyStatus, tax: result.customer.tax.tax, totalInclTax: result.customer.total } : null,
       internal: has(ctx, 'cost.view') ? { ...line.internal, versions: result.versions } : undefined,
     });
   }

@@ -27,7 +27,12 @@ export async function seedDemo() {
   await db.delete(S.termsVersions).where(eq(S.termsVersions.id, placeholderId));
   await importCompanyTerms(t.id);
   const [{ id: termsId }] = await db.select({ id: S.termsVersions.id }).from(S.termsVersions).where(eq(S.termsVersions.tenantId, t.id)).orderBy(S.termsVersions.version).limit(1) as any;
-  await db.insert(S.taxPolicyVersions).values({ tenantId: t.id, policyKey: 'demo-deduction', name: 'DEMO — deduction mechanism example (16 JOD per m³; NOT a verified rule)', status: 'draft', ratePct: '16', taxableComponents: ['concrete', 'delivery', 'pumping', 'other'], deductionAmount: '16', deductionBasis: 'per_m3', nonNegativeBase: true, sourceReference: '', isDemo: true, validFrom: iso(-365), createdBy: admin.user.id });
+  // The company's three tax scenarios. The JOD 16 threshold/formula is pending finance sign-off, so they stay unverified (status 'demo').
+  await db.update(S.taxPolicyVersions).set({ status: 'retired' }).where(eq(S.taxPolicyVersions.id, taxId));
+  for (const [key, name, rate] of [['tax-exempt', 'DEMO — Exempt (0%)', '0'], ['tax-8', 'DEMO — 8% on the amount above JOD 16 (per line)', '8'], ['tax-16', 'DEMO — 16% on the amount above JOD 16 (per line)', '16']] as const) {
+    await db.insert(S.taxPolicyVersions).values({ tenantId: t.id, policyKey: key, name, status: 'demo', ratePct: rate, taxableComponents: ['concrete', 'delivery', 'pumping', 'other'], deductionAmount: rate === '0' ? '0' : '16', deductionBasis: rate === '0' ? 'per_document' : 'per_line', nonNegativeBase: true,
+      exemptionNote: rate === '0' ? 'Exempt scenario' : '', sourceReference: 'Company-provided scenario — JOD 16 threshold and formula pending finance sign-off', isDemo: true, validFrom: iso(-365), createdBy: admin.user.id });
+  }
   const pricing = await createUser(t.id, 'pricing@demo.example', 'Pia Pricing', 'pricing', DEMO_PASSWORD);
   const finance = await createUser(t.id, 'finance@demo.example', 'Faris Finance', 'pricing', DEMO_PASSWORD);
   const tech = await createUser(t.id, 'technical@demo.example', 'Tala Technical', 'technical', DEMO_PASSWORD);

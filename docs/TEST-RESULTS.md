@@ -4,20 +4,20 @@ Run on 2026-10-07 in the build sandbox (Node 22, PostgreSQL 16.15, Chromium 1194
 
 | Suite | Command | Result |
 |---|---|---|
-| Pricing-engine unit tests | `npm run test:unit` | **39 / 39 passed** |
-| API integration tests (real PostgreSQL, migrations applied from scratch) | `npm run test:api` | **29 / 29 passed** (3 files) |
+| Pricing-engine unit tests | `npm run test:unit` | **44 / 44 passed** |
+| API integration tests (real PostgreSQL, migrations applied from scratch) | `npm run test:api` | **31 / 31 passed** (4 files) |
 | End-to-end (Playwright, production build, fresh database, real Chromium) | `npm run test:e2e` | **11 / 11 passed** (≈1.4 min) |
 | Type-check, all workspaces | `npm run typecheck` | clean |
 | Arabic coverage of UI strings | `npx tsx scripts/i18n-extract.mjs` | 814 strings, 0 missing (extraction-based; see limits) |
 | Colour contrast of the actual token pairs | `node scripts/contrast.mjs` | 27 pairs, all ≥ their WCAG minimum |
 
 ## What each suite proves
-**Engine (39):** unit conversion (350 kg × 100 JOD/t = 35 JOD/m³, density, bag/drum factors, wastage, freight, missing/invalid inputs are errors), fixed-cost allocation
+**Engine (44):** unit conversion (350 kg × 100 JOD/t = 35 JOD/m³, density, bag/drum factors, wastage, freight, missing/invalid inputs are errors), fixed-cost allocation
 (30,000 / 10,000 = 3; zero/negative/missing forecast rejected; double-inclusion guards), gross margin 20 % → 50, markup 20 % → 48, override 45 → 11.111 %, override reasons/approvals,
 pumping minimum (2 JOD/m³ × 50 m³, 150/visit → 150; per visit/quotation; mobilization & hours rows), trip delivery, duplicate/out-of-scope services, tax (deduction bases, line-splitting invariance,
 non-negative base, unverified policy as a blocker, tax-inclusive inversion incl. ambiguity), reconciliation of displayed lines to totals, offline preview parity with the authoritative engine.
 
-**API (29, real DB):** argon2id storage; generic login errors; HttpOnly/SameSite cookie; CSRF header + Origin enforcement; revocation (logout, admin revoke, disable); signup off by default; first-run setup refused with wrong token or non-empty DB;
+**API (31, real DB):** argon2id storage; generic login errors; HttpOnly/SameSite cookie; CSRF header + Origin enforcement; revocation (logout, admin revoke, disable); signup off by default; first-run setup refused with wrong token or non-empty DB;
 one-time/expiring invitations; cross-tenant references rejected through API **and** composite foreign keys; sales cannot reach costs through any endpoint and responses contain no cost fields; plant scope and ownership;
 quotation lifecycle (server-side numbers, freeze, hash, auto-approval, price override → approval, edit of a frozen revision → new revision + invalidated approval, submitter ≠ approver, outcomes with lost reason, lazy expiry, unverified tax / unapproved terms block issue);
 DB immutability triggers (frozen revisions, verified tax policy, published prices); issued quote unchanged after a published price change; revise (pinned) vs reprice (current); PDF text parsed back to compare totals, no internal data, fonts embedded, Arabic header repeated across pages;

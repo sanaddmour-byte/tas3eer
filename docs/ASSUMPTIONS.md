@@ -19,7 +19,7 @@ illustrative figures only.
 * **Decimal arithmetic** everywhere (`decimal.js`, 40 digits, half-up). Inputs and outputs are decimal strings.
 * **Rounding stages**: each material line is rounded to the *internal precision* (default 4 dp, configurable 3–6);
   the proposed unit price is rounded to 3 dp; each customer line amount = round₃(quantity × displayed unit rate);
-  service rows are rounded to 3 dp; tax is computed **once per document** and rounded to 3 dp; totals are sums of
+  service rows are rounded to 3 dp; tax is rounded to 3 dp (once per document, or per line for the per-line scenarios); totals are sums of
   rounded displayed lines, so printed lines always reconcile to printed totals.
 * **Materials**: `cost/m³ = dosage ÷ (dosage units per purchase unit) × (price + procurement freight if ex-source) × (1 + wastage%)`.
   Mass↔volume conversions require a density; bag/drum require an explicit factor; a missing price, freight,
@@ -35,7 +35,11 @@ illustrative figures only.
   per visit/pour/pump the pumped volume is **split evenly** across the entered number of units unless explicit per-visit quantities are supplied
   (assumption to confirm). Mobilization is charged per unit (or once per quotation) and shown as its own row.
 * **Trip delivery**: trips = ⌈volume ÷ truck capacity⌉; requires capacity, per-trip charge, fixed cost per trip, cost per km and the round-trip distance.
-* **Tax with `per_line` deduction**: lines with the same mix revision *and* rate are one logical line, so splitting a line does not change tax.
+* **Company tax scenarios (pending finance sign-off)**: *Exempt 0 %*, *8 %* and *16 %* on the amount above JOD 16, i.e. `tax = max(line subtotal − 16, 0) × rate`, computed **separately per line** and summed
+  (JOD 100 → 6.72 at 8 %, 13.44 at 16 %; ≤ 16 → 0). A line subtotal is its concrete amount plus its quantity-proportional share of the taxable delivery/pumping/other charges, because those are entered once per quotation.
+  Lines with the same mix revision *and* rate count as one line, so splitting a line cannot change tax. For a single mix price the same formula is shown on one m³ at the selling price.
+  **Difference from the reference code:** the reference implementation assigns *no* tax to a line with a manual price override; this app taxes overridden lines like any other (silently untaxed lines would understate tax) — confirm with finance.
+  All three are seeded as *unverified demo* policies (quotations can't be issued until a user with tax-verify rights verifies the chosen one); tax is rounded per line to 3 dp.
 * **Tax-inclusive entry** is supported only for a quotation with exactly one concrete line (otherwise ambiguous and rejected).
 * **Approval triggers** (all need `quote.approve`): price override, cost override, service-rate override, margin below the policy's
   threshold, price below full configured cost. No trigger ⇒ the frozen revision is approved automatically. Maker/checker

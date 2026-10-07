@@ -20,9 +20,9 @@ Workflow: **configure company → maintain material prices & plant costs → app
 | OpenAPI | `docs/openapi.json` generated from the Zod schemas (`npx tsx scripts/gen-openapi.ts`) |
 
 ```
-packages/engine   pricing engine, units, tax, services, plant costing      (39 unit tests)
+packages/engine   pricing engine, units, tax, services, plant costing      (44 unit tests)
 packages/shared   capabilities, roles, Zod schemas
-apps/api          Express API, Drizzle schema + migrations, demo seed, PDF   (29 integration tests, real PostgreSQL)
+apps/api          Express API, Drizzle schema + migrations, demo seed, PDF   (31 integration tests, real PostgreSQL)
 apps/web          React app (EN/AR), offline store, builder, price book …
 e2e/              Playwright end-to-end, mobile, Arabic, a11y, offline specs
 docs/             ASSUMPTIONS.md, openapi.json, screenshots
@@ -86,7 +86,7 @@ refresh, and never submit/approve/issue offline. Sign-out wipes the store. See `
 (deferred); the engine and shared packages are structured for reuse and the same snapshot/outbox/idempotency/conflict rules apply to a SQLite store.
 
 ## Verification (details in [`docs/TEST-RESULTS.md`](docs/TEST-RESULTS.md))
-39 engine tests · 29 API integration tests (real PostgreSQL) · 11 Playwright end-to-end tests (company creation → issued PDF → price change → issued quote unchanged → reprice; offline/conflict; Arabic 360 px flow; responsive 360/768/1024/1440; axe scan with 0 violations) — all passing on the final build.
+44 engine tests · 31 API integration tests (real PostgreSQL) · 11 Playwright end-to-end tests (company creation → issued PDF → price change → issued quote unchanged → reprice; offline/conflict; Arabic 360 px flow; responsive 360/768/1024/1440; axe scan with 0 violations) — all passing on the final build.
 Automated checks are not a full WCAG audit; drafting-time “under two minutes” was **not** measured with humans (the automated flow takes ≈2.5 s of machine time).
 
 ## Screenshots (`docs/screenshots/`, real running app on the demo tenant)
