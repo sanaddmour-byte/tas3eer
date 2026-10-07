@@ -92,6 +92,7 @@ export function pumpingService(s: PumpingServiceInput, pc: PlantCostInput, total
 }
 
 export function otherService(s: OtherServiceInput, mdp: number): ServiceResult {
+  if (!s.label.trim()) throw new PricingError([err('other_label_missing', 'Enter a description for the additional service.', `services[${s.id}]`)]);
   const q = D(s.quantity, 'quantity'), r = D(s.rate, 'rate');
   if (q.lte(0) || r.lt(0)) throw new PricingError([err('other_invalid', `${s.label}: quantity must be positive and rate cannot be negative.`, `services[${s.id}]`)]);
   const a = rnd(q.mul(r), mdp);

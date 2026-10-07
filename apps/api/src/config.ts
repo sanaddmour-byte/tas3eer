@@ -1,3 +1,4 @@
+import path from 'node:path';
 const bool = (v: string | undefined, d: boolean) => (v === undefined ? d : ['1', 'true', 'yes'].includes(v.toLowerCase()));
 export const config = {
   env: process.env.NODE_ENV ?? 'development',
@@ -14,8 +15,7 @@ export const config = {
   rateLimitEnabled: bool(process.env.RATE_LIMIT_ENABLED, true),
   webOrigin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
   chromiumPath: process.env.CHROMIUM_PATH ?? '',
-  webDist: process.env.WEB_DIST ?? '',
-  fontsDir: process.env.FONTS_DIR ?? '',
+  webDist: process.env.WEB_DIST ? path.resolve(process.env.WEB_DIST) : '',
   demoMode: bool(process.env.DEMO_MODE, false),
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES ?? 2 * 1024 * 1024),
 };

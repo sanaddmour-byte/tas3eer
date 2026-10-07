@@ -1,12 +1,18 @@
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
 import { db, pool } from './client.js';
 
-export async function runMigrations() {
-  const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), process.env.MIGRATIONS_DIR ?? '../../drizzle');
-  await migrate(db, { migrationsFolder: dir });
+function findMigrations() {
+  if (process.env.MIGRATIONS_DIR) return path.resolve(process.env.MIGRATIONS_DIR);
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 6; i++, dir = path.dirname(dir)) if (fs.existsSync(path.join(dir, 'drizzle', 'meta', '_journal.json'))) return path.join(dir, 'drizzle');
+  throw new Error('drizzle migrations folder not found; set MIGRATIONS_DIR');
 }
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+export async function runMigrations() {
+  await migrate(db, { migrationsFolder: findMigrations() });
+}
+if (process.argv[1] && /(^|[\/])migrate.[tj]s$/.test(process.argv[1])) {
   runMigrations().then(() => { console.log('migrations applied'); return pool.end(); }).catch((e) => { console.error(e); process.exit(1); });
 }

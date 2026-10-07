@@ -1,3 +1,1 @@
-{ "name": "@rm/shared", "version": "0.1.0", "type": "module", "main": "src/index.ts", "types": "src/index.ts",
-  "scripts": { "typecheck": "tsc -p ." },
-  "dependencies": { "zod": "^3.23.8" } }
+{"name":"@rm/shared","version":"0.1.0","type":"module","main":"src/index.ts","types":"src/index.ts","scripts":{"typecheck":"tsc -p ."},"dependencies":{"zod":"^3.23.8","zod-to-json-schema":"^3.25.2"}}

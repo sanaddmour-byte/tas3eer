@@ -78,7 +78,7 @@ export const quoteLineDoc = z.object({
 export const serviceDoc = z.discriminatedUnion('type', [
   z.object({ id: z.string(), type: z.literal('delivery'), method: z.enum(['per_m3', 'zone', 'trip']), zoneCode: z.string().optional(), quantityM3: z.string().optional(), roundTripKm: z.string().optional(), rateOverride: z.object({ chargePerM3: posDec, reason: z.string() }).nullable().optional() }),
   z.object({ id: z.string(), type: z.literal('pumping'), quantityM3: z.string().optional(), units: z.number().int().min(1).max(500).optional(), visitQuantities: z.array(z.string()).optional(), extraHours: z.string().optional(), rateOverride: z.object({ chargePerM3: posDec, reason: z.string() }).nullable().optional() }),
-  z.object({ id: z.string(), type: z.literal('other'), label: z.string().min(1), quantity: z.string(), unit: z.string().min(1), rate: z.string() }),
+  z.object({ id: z.string(), type: z.literal('other'), label: z.string(), quantity: z.string(), unit: z.string().min(1), rate: z.string() }),
 ]);
 export const quoteDocument = z.object({
   clientId: uuid.nullable(), projectId: uuid.nullable(), plantId: uuid.nullable(),

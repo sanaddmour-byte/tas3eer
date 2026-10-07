@@ -272,7 +272,7 @@ quoteRouter.post('/sync/operations', wrap(async (req, res) => {
   try {
     const out = await db.transaction(async (tx) => {
       const r = await Q.saveDraft(tx, ctx, { quotationId: op.quotationId, revNo: op.revNo, baseVersion: op.baseVersion, doc: op.doc, create: op.create });
-      const response = { status: 'ok', quotationId: r.quotationId, revNo: r.revNo, version: r.version, createdNewRevision: r.createdNewRevision, number: (await tx.select({ n: S.quotations.number }).from(S.quotations).where(eq(S.quotations.id, r.quotationId)))[0]?.n };
+      const response = { status: 'ok', quotationId: r.quotationId, revNo: r.revNo, version: r.version, createdNewRevision: r.createdNewRevision, result: Q.viewResult(r.result, ctx), fingerprint: r.fingerprint, number: (await tx.select({ n: S.quotations.number }).from(S.quotations).where(eq(S.quotations.id, r.quotationId)))[0]?.n };
       await tx.insert(S.syncOperations).values({ tenantId: ctx.tenantId, userId: ctx.userId, idempotencyKey: op.idempotencyKey, opType: op.type, entityId: r.quotationId, status: 'ok', response });
       return response;
     });

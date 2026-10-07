@@ -38,7 +38,7 @@ describe('price batches & Excel import', () => {
     expect((await p.post(`/api/price-batches/${b.id}/upload`).attach('file', Buffer.from('a,b'), 'prices.csv')).status).toBe(400);
     const t = await p.get('/api/price-batches/template').buffer(true).parse((res, cb) => { const c: Buffer[] = []; res.on('data', (x: Buffer) => c.push(x)); res.on('end', () => cb(null, Buffer.concat(c))); });
     expect(t.status).toBe(200);
-    const wb = new ExcelJS.Workbook(); await wb.xlsx.load(t.body as Buffer);
+    const wb = new ExcelJS.Workbook(); await wb.xlsx.load(t.body as any);
     expect(wb.getWorksheet('Prices')!.rowCount).toBeGreaterThan(6);
   });
   it('valid upload → impact preview → submit → approve publishes atomically with audit; stale proposals are rejected', async () => {
