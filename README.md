@@ -58,6 +58,11 @@ Plants Marka / Sahab / Aqaba (editable), 6 materials, mixes C25/C30/C35/C40 (app
 price-update proposal, quotations in several statuses (draft, pending approval with an override, auto-approved, returned) and a demo tax policy that is **unverified**.
 To issue in the demo, verify the demo tax policy (`pricing@`) and approve the demo terms (`admin@`) — exactly as production requires.
 
+## Company reference data (not loaded automatically)
+* **Terms & conditions** (standard + mobile quotation sets, 13 clauses each, English as supplied + Arabic translation): `npm run terms:import -w @rm/api -- <tenant-slug>` adds them as **draft** terms versions; an admin approves them in Company Settings → Terms. The demo tenant includes them. The Arabic is a working translation that needs company review; the Arabic PDF prints the Arabic clauses.
+  Several clauses are commercial rules (waiting time, short-load fees, 25 km radius…) printed as text only — the pricing engine does not apply them; charges must be entered as service rows.
+* **Reference raw-material prices (1 May 2026, 12 plants × 16 materials)**: `npm run prices:import -w @rm/api -- <tenant-slug>` creates missing plants/materials and one **draft** price batch for review/approval — nothing is published. Zero values in the list (Project Batch Plant, Jiza water) are skipped as "not configured". Assumed basis: delivered to plant (verify).
+
 ## Roles (presets; capabilities can be granted/revoked per user)
 Admin · Pricing/Finance · Technical/QA · Sales · Viewer (read-only, plant-scoped). “See costs” (`cost.view`) and “see selling prices”
 (`price.view`) are separate capabilities enforced **in the API and in response fields**: users without `cost.view` never receive recipes’ costs,

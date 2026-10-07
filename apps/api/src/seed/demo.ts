@@ -7,6 +7,7 @@ import { db, pool, schema } from '../db/client.js';
 import { runMigrations } from '../db/migrate.js';
 import * as Q from '../services/quotes.js';
 import { computeImpact } from '../routes/priceBatches.js';
+import { importCompanyTerms } from './terms.js';
 import { createClientProject, createTenant, createUser, iso, seedCatalog, seedTaxAndTerms } from './fixture.js';
 import type { QuoteDocument } from '@rm/shared';
 
@@ -22,7 +23,10 @@ export async function seedDemo() {
   const cat = await seedCatalog(t.id, admin.user.id, [
     { code: 'MRK', nameEn: 'Marka', nameAr: 'ماركا' }, { code: 'SHB', nameEn: 'Sahab', nameAr: 'سحاب' }, { code: 'AQB', nameEn: 'Aqaba', nameAr: 'العقبة' },
   ]);
-  const { taxId, termsId } = await seedTaxAndTerms(t.id, admin.user.id);
+  const { taxId, termsId: placeholderId } = await seedTaxAndTerms(t.id, admin.user.id);
+  await db.delete(S.termsVersions).where(eq(S.termsVersions.id, placeholderId));
+  await importCompanyTerms(t.id);
+  const [{ id: termsId }] = await db.select({ id: S.termsVersions.id }).from(S.termsVersions).where(eq(S.termsVersions.tenantId, t.id)).orderBy(S.termsVersions.version).limit(1) as any;
   await db.insert(S.taxPolicyVersions).values({ tenantId: t.id, policyKey: 'demo-deduction', name: 'DEMO — deduction mechanism example (16 JOD per m³; NOT a verified rule)', status: 'draft', ratePct: '16', taxableComponents: ['concrete', 'delivery', 'pumping', 'other'], deductionAmount: '16', deductionBasis: 'per_m3', nonNegativeBase: true, sourceReference: '', isDemo: true, validFrom: iso(-365), createdBy: admin.user.id });
   const pricing = await createUser(t.id, 'pricing@demo.example', 'Pia Pricing', 'pricing', DEMO_PASSWORD);
   const finance = await createUser(t.id, 'finance@demo.example', 'Faris Finance', 'pricing', DEMO_PASSWORD);

@@ -42,7 +42,7 @@ export function quotationHtml(snap: any, meta: { number: string; issuedAt: Date 
   }).join('');
   const svcRows = c.services.flatMap((s: any) => s.rows.map((r: any) => `<tr><td>${esc(r.label)}</td><td class="n">${qty(r.quantity)}</td><td class="u">${esc(r.unit)}</td><td class="n">${money(r.rate)}</td><td class="n">${money(r.amount)}</td></tr>`)).join('');
   const taxRow = tot.tax ? `<tr><td colspan="4">${esc(t.tax)} (${esc(tot.tax.ratePct)}%)${Number(tot.tax.deduction) > 0 ? ` — ${esc(t.taxBasis)} ${money(tot.tax.taxableBase)} (${esc(t.deduction)} ${money(tot.tax.deduction)})` : ''}</td><td class="n">${money(tot.tax.tax)}</td></tr>` : '';
-  const clauses = (c.terms?.clauses ?? []).map((cl: any, i: number) => `<li><b>${esc(cl.title)}.</b> ${esc(cl.text)}</li>`).join('');
+  const clauses = (c.terms?.clauses ?? []).map((cl: any) => { const title = rtl && cl.titleAr ? cl.titleAr : cl.title; const text = rtl && cl.textAr ? cl.textAr : cl.text; return `<li>${title ? `<b>${esc(title)}.</b> ` : ''}${esc(text)}</li>`; }).join('');
   const co = c.company ?? {};
   return `<!doctype html><html lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>${esc(meta.number)}</title><style>${fonts()}
   @page{size:A4;margin:16mm 14mm 18mm}

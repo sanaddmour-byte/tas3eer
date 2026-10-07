@@ -11,7 +11,9 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=../../.env src/db/migrate.ts",
-    "seed:demo": "tsx --env-file-if-exists=../../.env src/seed/demo.ts"
+    "seed:demo": "tsx --env-file-if-exists=../../.env src/seed/demo.ts",
+    "prices:import": "tsx --env-file-if-exists=../../.env src/seed/reference-prices.ts",
+    "terms:import": "tsx --env-file-if-exists=../../.env src/seed/terms.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

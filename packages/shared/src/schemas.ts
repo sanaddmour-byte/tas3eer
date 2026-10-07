@@ -59,7 +59,7 @@ export const taxPolicyInput = z.object({
   deductionAmount: posDec.default('0'), deductionBasis: z.enum(['per_m3', 'per_line', 'per_document']).default('per_document'),
   nonNegativeBase: z.boolean().default(true), exemptionNote: z.string().default(''), sourceReference: z.string().default(''), validFrom: isoDate,
 });
-export const termsInput = z.object({ name: z.string().min(1), clauses: z.array(z.object({ title: z.string().min(1), text: z.string().min(1) })) });
+export const termsInput = z.object({ name: z.string().min(1), clauses: z.array(z.object({ title: z.string().default(''), text: z.string().min(1), titleAr: z.string().default(''), textAr: z.string().default('') })) });
 
 export const clientInput = z.object({
   name: z.string().min(1).max(160), taxNumber: z.string().default(''), notes: z.string().default(''),
