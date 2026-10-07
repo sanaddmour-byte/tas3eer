@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+*.log
+.pgdata
+e2e/screenshots/.tmp
+apps/web/dev-dist
+test-results
+playwright-report
